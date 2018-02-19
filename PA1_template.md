@@ -8,18 +8,15 @@ output:
 
 ## Loading and preprocessing the data
 
-```{r constants, echo = FALSE}
-targetDir = "data"
-targetFilename = "data.zip"
-dataFilename = "activity.csv"
-```
+
 
 Preparatory Steps
 
 1. Download the data
 1. Load the data into memory
 
-```{r downloadData}
+
+```r
 if (!dir.exists("data")) {
     dir.create("data")
 }
@@ -32,7 +29,8 @@ if (!file.exists(targetPath)) {
 }
 ```
 
-```{r loadData}
+
+```r
 stepPath = file.path(targetDir, dataFilename)
 
 stepDF = read.csv(stepPath, header = TRUE, na.strings = "NA", colClasses = c("numeric", "character", "numeric"))
@@ -44,31 +42,42 @@ stepDF$StepDate = as.POSIXlt(paste(stepDF$date, stepDF$TimeString, sep = " "), f
 
 ## What is mean total number of steps taken per day?
 
-```{r stepsperday}
+
+```r
 stepsByDate = tapply(stepDF$steps, stepDF$date, sum, na.rm = TRUE)
 hist(stepsByDate, xlab = "Steps", main = "Histogram of Steps per Day")
+```
 
+![](PA1_template_files/figure-html/stepsperday-1.png)<!-- -->
+
+```r
 meanStepsPerDay = mean(stepsByDate, na.rm = TRUE)
 medianStepsPerDay = median(stepsByDate, na.rm = TRUE)
 ```
 
-The mean steps per day is `r meanStepsPerDay` and the median steps per day is `r medianStepsPerDay` (NA removed).
+The mean steps per day is 9354.2295082 and the median steps per day is 1.0395\times 10^{4} (NA removed).
 
 ## What is the average daily activity pattern?
 
-```{r stepsbyinterval}
+
+```r
 stepsByInterval = tapply(stepDF$steps, stepDF$TimeString, mean, na.rm = TRUE)
 
 plot(names(stepsByInterval), stepsByInterval, xlab = "Interval", ylab = "Mean Steps", main = "Mean Steps by Interval", type = "l")
+```
 
+![](PA1_template_files/figure-html/stepsbyinterval-1.png)<!-- -->
+
+```r
 maxInterval = names(stepsByInterval[stepsByInterval == max(stepsByInterval)])
 ```
 
-The interval with the maximum average daily steps is `r maxInterval`.
+The interval with the maximum average daily steps is 0835.
 
 ## Imputing missing values
 
-```{r missingvalues}
+
+```r
 missingSteps = stepDF[is.na(stepDF$steps),]
 countNA = nrow(missingSteps)
 
@@ -82,19 +91,24 @@ for (rowNum in 1:nrow(imputedDF)) {
 
 imputedStepsByDate = tapply(imputedDF$steps, imputedDF$date, sum, na.rm = TRUE)
 hist(imputedStepsByDate, xlab = "Steps", main = "Histogram of Steps per Day")
+```
 
+![](PA1_template_files/figure-html/missingvalues-1.png)<!-- -->
+
+```r
 imputedMeanStepsPerDay = mean(imputedStepsByDate)
 imputedMedianStepsPerDay = median(imputedStepsByDate)
 ```
 
-There are `r countNA` rows with missing step counts.
+There are 2304 rows with missing step counts.
 
-The original mean steps per day is `r meanStepsPerDay` and the imputed mean is `r imputedMeanStepsPerDay`.
-The original median steps per day is `r medianStepsPerDay` and the imputed median is `r imputedMedianStepsPerDay`.
+The original mean steps per day is 9354.2295082 and the imputed mean is 9503.8688525.
+The original median steps per day is 1.0395\times 10^{4} and the imputed median is 1.0395\times 10^{4}.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-```{r weekends}
+
+```r
 imputedDF$IsWeekend = factor(ifelse(imputedDF$StepDate$wday %in% c(0, 6), 'weekend', 'weekday'))
 
 weekendDF = subset(imputedDF, imputedDF$IsWeekend == 'weekend')
@@ -107,3 +121,5 @@ par(mfrow=c(2, 1))
 plot(names(weekendSBI), weekendSBI, xlab = "Interval", ylab = "Mean Steps", main = "Weekend", type = "l")
 plot(names(weekdaySBI), weekdaySBI, xlab = "Interval", ylab = "Mean Steps", main = "Weekday", type = "l")
 ```
+
+![](PA1_template_files/figure-html/weekends-1.png)<!-- -->
